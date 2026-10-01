@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Likeu Store</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg: var(--tg-theme-bg-color, #ffffff);
+  --bg2: var(--tg-theme-secondary-bg-color, #f1f3f6);
+  --text: var(--tg-theme-text-color, #14171c);
+  --hint: var(--tg-theme-hint-color, #7b8591);
+  --accent: var(--tg-theme-button-color, #2f6fed);
+  --accent-text: var(--tg-theme-button-text-color, #ffffff);
+  --r: 14px;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+#home{padding:12px}
+header{margin:4px 2px 12px}
+h1{font-size:26px;font-weight:800;letter-spacing:-.4px}
+.sub{color:var(--hint);font-size:14px}
+.feat{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -12px 14px;padding:0 12px;scrollbar-width:none}
+.feat::-webkit-scrollbar{display:none}
+.fcard{position:relative;flex:none;width:82%;max-width:420px;aspect-ratio:16/10;border-radius:18px;overflow:hidden;scroll-snap-align:center;background-size:cover;background-position:center;text-align:left;color:#fff;padding:0}
+.fshade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,0) 62%)}
+.ftxt{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-direction:column}
+.ftxt b{font-size:20px}
+.ftxt small{opacity:.85;font-size:13px}
+.fcard em{position:absolute;top:10px;left:10px;font-style:normal;font-size:12px;font-weight:600;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:99px}
+.search{width:100%;padding:12px 14px;border:0;border-radius:var(--r);background:var(--bg2);color:var(--text);font:inherit;outline:none}
+.search:focus-visible,button:focus-visible{outline:2px solid var(--accent)}
+.tags{display:flex;gap:8px;overflow-x:auto;padding:10px 0;scrollbar-width:none}
+.tags::-webkit-scrollbar{display:none}
+.tag{flex:none;border-radius:99px;padding:7px 14px;background:var(--bg2);font-size:14px}
+.tag[aria-pressed="true"]{background:var(--accent);color:var(--accent-text)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--bg2);border-radius:var(--r);overflow:hidden;text-align:left;padding:0;display:block;width:100%}
+.cover{aspect-ratio:3/2;display:grid;place-items:center;font-size:44px;font-weight:800;color:#fff;background-size:cover;background-position:center}
+.info{padding:10px 12px 12px}
+.name{font-weight:600;font-size:15px}
+.meta{color:var(--hint);font-size:13px;margin-top:2px}
+.empty{color:var(--hint);text-align:center;padding:40px 0}
+.credit{text-align:center;margin-top:20px}
+.credit a{color:inherit}
+/* страница игры */
+.hero{position:relative;aspect-ratio:16/10;display:grid;place-items:center;font-size:72px;font-weight:800;color:#fff;background-size:cover;background-position:center}
+.back{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:10px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:20px}
+.body{padding:16px}
+.body h2{font-size:26px;font-weight:800;letter-spacing:-.3px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.chip{background:var(--bg2);border-radius:99px;padding:5px 12px;font-size:13px}
+.chip.ru{background:var(--accent);color:var(--accent-text)}
+.row{display:flex;gap:10px;margin:6px 0 18px}
+.btn{flex:1;border-radius:var(--r);padding:14px;font-weight:600;background:var(--accent);color:var(--accent-text)}
+.btn.alt{flex:none;background:var(--bg2);color:var(--text);padding:14px 20px}
+.body h3{font-size:17px;margin:18px 0 8px}
+.body p{white-space:pre-line}
+.shots{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px;scrollbar-width:none}
+.shots::-webkit-scrollbar{display:none}
+.shots img{flex:none;width:78%;max-width:380px;aspect-ratio:16/9;object-fit:cover;border-radius:12px;scroll-snap-align:center;background:var(--bg2)}
+</style>
+</head>
+<body>
+<div id="home">
+  <header>
+    <h1>Likeu Store</h1>
+    <div class="sub">Игры с переводом от нашей команды</div>
+  </header>
+  <div class="feat" id="feat"></div>
+  <input class="search" id="q" type="search" placeholder="Найти игру" aria-label="Найти игру">
+  <div class="tags" id="tags"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>Ничего не найдено. Попробуйте другой запрос или тег.</div>
+  <p class="meta credit">Данные об играх: <a href="https://rawg.io">RAWG</a></p>
+</div>
+<div id="page" hidden></div>
+
+<script>
+/* ============ 1. КЛЮЧ RAWG (бесплатный: rawg.io/apidocs) ============
+   Вставьте между кавычками. С ключом страница сама подтянет обложки,
+   год, жанры, рейтинг, скриншоты и описание. Без ключа будут только
+   ваши данные из списка ниже. */
+const RAWG_KEY = "";
+
+/* ============ 2. ВАШИ ИГРЫ ============
+   Минимум: {title:"Hades"}. Всё остальное необязательно:
+   ru:true   — есть перевод от вашей команды (значок + плашка)
+   top:true  — показывать в большом блоке сверху
+   desc      — ваше описание (главнее, чем с RAWG)
+   year, tags, cover — перекрывают данные с RAWG
+   link      — ваша партнёрская ссылка (иначе поиск по Steam)
+   Примеры: пометки ru и top здесь тестовые, расставьте свои. */
+const GAMES = [
+  {title:"Hades",year:2020,tags:["Экшен","Рогалик"],ru:true,top:true,
+   desc:"Побег из подземного мира снова и снова. Быстрые бои, а сюжет двигается с каждой попыткой."},
+  {title:"Stardew Valley",year:2016,tags:["Симулятор","Расслабляющие"],ru:true,top:true,
+   desc:"Своя ферма, жители деревни, рыбалка и шахты. Спокойная игра на десятки часов."},
+  {title:"Disco Elysium",year:2019,tags:["RPG","Сюжетные"],top:true,
+   desc:"Детектив без боёв: диалоги, навыки в голове героя и очень много текста."},
+  {title:"Hollow Knight",year:2017,tags:["Экшен","Платформер"],ru:true,top:true,
+   desc:"Огромное подземное королевство насекомых. Сложные боссы и атмосферная музыка."},
+  {title:"Portal 2",year:2011,tags:["Головоломки","Кооператив"],
+   desc:"Головоломки с порталами и чёрный юмор. Есть отдельная кампания на двоих."},
+  {title:"Celeste",year:2018,tags:["Платформер","Сюжетные"],ru:true,
+   desc:"Точный платформер про восхождение на гору и про то, как справляться с тревогой."},
+  {title:"Terraria",year:2011,tags:["Песочница","Кооператив"],ru:true,
+   desc:"Копайте, стройте, исследуйте и сражайтесь с боссами в 2D-мире. Можно играть вдвоём и больше."},
+  {title:"Slay the Spire",year:2019,tags:["Карточные","Рогалик"],
+   desc:"Собираете колоду во время подъёма на башню. Каждый забег уникален."},
+  {title:"Dead Cells",year:2018,tags:["Экшен","Рогалик"],ru:true,
+   desc:"Динамичный экшен с случайными уровнями и сотнями видов оружия."},
+  {title:"Subnautica",year:2018,tags:["Выживание","Приключения"],
+   desc:"Выживание на океанической планете: база под водой, глубины и тайны."},
+  {title:"Outer Wilds",year:2019,tags:["Приключения","Головоломки"],
+   desc:"Исследуйте солнечную систему, которая каждые 22 минуты заканчивается и начинается заново."},
+  {title:"It Takes Two",year:2021,tags:["Кооператив","Приключения"],
+   desc:"Игра только для двоих: необычные механики на каждом уровне и семейная история."},
+  {title:"Cuphead",year:2017,tags:["Экшен","Платформер"],
+   desc:"Битвы с боссами в стиле мультфильмов 1930-х. Красиво и очень сложно."},
+  {title:"Factorio",year:2020,tags:["Стратегии","Симулятор"],
+   desc:"Стройте и автоматизируйте заводы, пока не запустите ракету. Затягивает надолго."}
+];
+/* ====================================== */
+
+const GENRE = {Action:"Экшен",Adventure:"Приключения",RPG:"RPG",Strategy:"Стратегии",Shooter:"Шутеры",
+  Puzzle:"Головоломки",Platformer:"Платформер",Simulation:"Симулятор",Indie:"Инди",Casual:"Казуальные",
+  Arcade:"Аркады",Racing:"Гонки",Sports:"Спорт",Fighting:"Файтинги",Family:"Семейные",
+  "Massively Multiplayer":"MMO",Card:"Карточные",Educational:"Обучение"};
+
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let favs = [];
+try { favs = JSON.parse(localStorage.getItem("favs") || "[]"); } catch(e) {}
+const saveFavs = () => { try { localStorage.setItem("favs", JSON.stringify(favs)); } catch(e) {} };
+
+let activeTag = "Все", cur = -1, scrollY0 = 0;
+
+const link = g => g.link || "https://store.steampowered.com/search/?term=" + encodeURIComponent(g.title);
+const tagsOf = g => (g.tags && g.tags.length) ? g.tags : (g.autoTags || []);
+const yearOf = g => g.year || g.autoYear || "";
+function hue(s){ let h=0; for (const c of s) h=(h*31+c.charCodeAt(0))%360; return h; }
+function coverStyle(g){
+  if (g.cover) return "background-image:url('" + g.cover.replace(/'/g,"%27") + "')";
+  const h = hue(g.title);
+  return "background-image:linear-gradient(135deg,hsl("+h+" 55% 42%),hsl("+((h+50)%360)+" 60% 30%))";
+}
+const initial = g => g.cover ? "" : g.title[0];
+
+function renderFeat(){
+  const items = GAMES.map((g,i) => [g,i]).filter(x => x[0].top);
+  $("feat").innerHTML = items.map(([g,i]) =>
+    `<button class="fcard" data-i="${i}" style="${coverStyle(g)}"><span class="fshade"></span>
+     ${g.ru ? "<em>Есть перевод</em>" : ""}
+     <span class="ftxt"><b>${esc(g.title)}</b><small>${esc(tagsOf(g).slice(0,2).join(", "))}</small></span></button>`).join("");
+  $("feat").hidden = !items.length;
+}
+function renderTags(){
+  const all = ["Все","Избранное",...new Set(GAMES.flatMap(tagsOf))];
+  if (!all.includes(activeTag)) activeTag = "Все";
+  $("tags").innerHTML = all.map(t =>
+    `<button class="tag" aria-pressed="${t===activeTag}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+}
+function renderGrid(){
+  const q = $("q").value.trim().toLowerCase();
+  const list = GAMES.map((g,i) => [g,i]).filter(([g]) =>
+    (activeTag==="Все" || (activeTag==="Избранное" ? favs.includes(g.title) : tagsOf(g).includes(activeTag))) &&
+    (!q || g.title.toLowerCase().includes(q)));
+  $("grid").innerHTML = list.map(([g,i]) => `
+    <button class="card" data-i="${i}">
+      <div class="cover" style="${coverStyle(g)}">${initial(g)}</div>
+      <div class="info"><div class="name">${esc(g.title)}</div>
+      <div class="meta">${[yearOf(g), tagsOf(g)[0]].filter(Boolean).map(esc).join(" • ")}</div></div>
+    </button>`).join("");
+  $("empty").hidden = list.length > 0;
+}
+
+function openGame(i){
+  const g = GAMES[i]; if (!g) return;
+  cur = i; scrollY0 = window.scrollY;
+  const shots = (g.shots || []).map(s => `<img src="${esc(s)}" loading="lazy" alt="">`).join("");
+  const meta = [yearOf(g), g.rating ? "★ " + g.rating : ""].filter(Boolean).join(" • ");
+  $("page").innerHTML = `
+    <div class="hero" style="${coverStyle(g)}"><button class="back" id="back" aria-label="Назад">←</button>${initial(g)}</div>
+    <div class="body">
+      <h2>${esc(g.title)}</h2>
+      ${meta ? `<div class="meta">${esc(meta)}</div>` : ""}
+      <div class="chips">${tagsOf(g).map(t => `<span class="chip">${esc(t)}</span>`).join("")}
+        ${g.ru ? '<span class="chip ru">Есть перевод от нашей команды</span>' : ""}</div>
+      <div class="row">
+        <button class="btn" id="buy">Открыть в магазине</button>
+        <button class="btn alt" id="fav" aria-label="Избранное">${favs.includes(g.title) ? "★" : "☆"}</button>
+      </div>
+      <h3>Об игре</h3>
+      <p id="desc">${esc(g.desc || g.full || "Описание скоро появится.")}</p>
+      ${shots ? `<h3>Скриншоты</h3><div class="shots">${shots}</div>` : ""}
+    </div>`;
+  $("home").hidden = true; $("page").hidden = false; window.scrollTo(0,0);
+  if (tg) { tg.BackButton.show(); }
+  $("back").onclick = closeGame;
+  $("buy").onclick = () => tg ? tg.openLink(link(g)) : window.open(link(g), "_blank");
+  $("fav").onclick = () => {
+    favs = favs.includes(g.title) ? favs.filter(x => x !== g.title) : [...favs, g.title];
+    saveFavs(); $("fav").textContent = favs.includes(g.title) ? "★" : "☆"; renderGrid();
+  };
+  if (!g.desc && !g.full && g.rawgId && RAWG_KEY) {
+    fetch("https://api.rawg.io/api/games/" + g.rawgId + "?key=" + RAWG_KEY)
+      .then(r => r.json()).then(d => {
+        g.full = (d.description_raw || "").slice(0, 900);
+        if (cur === i && g.full) $("desc").textContent = g.full;
+      }).catch(() => {});
+  }
+}
+function closeGame(){
+  cur = -1; $("page").hidden = true; $("home").hidden = false;
+  if (tg) tg.BackButton.hide();
+  window.scrollTo(0, scrollY0);
+}
+if (tg) tg.BackButton.onClick(closeGame);
+
+const pick = e => { const b = e.target.closest("[data-i]"); if (b) openGame(+b.dataset.i); };
+$("feat").onclick = pick;
+$("grid").onclick = pick;
+$("tags").onclick = e => { const b = e.target.closest(".tag"); if (!b) return; activeTag = b.dataset.t; renderTags(); renderGrid(); };
+$("q").oninput = renderGrid;
+
+renderFeat(); renderTags(); renderGrid();
+
+/* автозаполнение с RAWG: ваши поля всегда главнее */
+async function loadMeta(){
+  if (!RAWG_KEY) return;
+  await Promise.all(GAMES.map(async g => {
+    try {
+      const r = await fetch("https://api.rawg.io/api/games?key=" + RAWG_KEY +
+        "&search=" + encodeURIComponent(g.title) + "&page_size=1");
+      const x = ((await r.json()).results || [])[0]; if (!x) return;
+      g.rawgId = x.id;
+      if (!g.cover && x.background_image) g.cover = x.background_image;
+      g.autoYear = x.released ? x.released.slice(0,4) : "";
+      g.autoTags = (x.genres || []).map(t => GENRE[t.name] || t.name);
+      g.rating = x.rating ? x.rating.toFixed(1) : "";
+      g.shots = (x.short_screenshots || []).slice(1,6).map(s => s.image);
+    } catch(e) {}
+  }));
+  renderFeat(); renderTags(); renderGrid();
+}
+loadMeta();
+</script>
+</body>
+</html>
